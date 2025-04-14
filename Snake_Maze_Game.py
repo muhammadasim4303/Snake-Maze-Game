@@ -39,6 +39,19 @@ def score(score):
     value = font_style.render("Snake Score: " + str(score), True, yellow)
     dis.blit(value, [0, 0])
 
+def save_high_score(score, filename="highscore.txt"):
+    try:
+        with open(filename, "r") as file:
+            high_score = int(file.read())
+    except:
+        high_score = 0
+    if score > high_score:
+        with open(filename, "w") as file:
+            file.write(str(score))
+        return score
+    return high_score
+
+
 def our_snake(block_size, snake_list):
     for x in snake_list:
         pygame.draw.rect(dis, black, [x[0], x[1], block_size, block_size])

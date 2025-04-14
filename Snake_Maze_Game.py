@@ -2,6 +2,7 @@ import pygame
 import time
 import random
 import heapq
+import matplotlib.pyplot as plt
 
 pygame.init()
 
@@ -13,16 +14,26 @@ green = (0, 255, 0)
 blue = (50, 153, 213)
 
 dis_width = 600
-dis_height = 400
+dis_height = 600
 
 block_size = 10
-snake_speed = 15
+snake_speed = 20
 
 dis = pygame.display.set_mode((dis_width, dis_height))
 pygame.display.set_caption('Snake Xenzia')
 clock = pygame.time.Clock()
 
 font_style = pygame.font.SysFont(None, 50)
+
+def generate_maze_walls():
+    walls = set()
+    for x in range(0, dis_width, block_size):
+        walls.add((x, 0))  # Top wall
+        walls.add((x, dis_height - block_size))  # Bottom wall
+    for y in range(0, dis_height, block_size):
+        walls.add((0, y))  # Left wall
+        walls.add((dis_width - block_size, y))  # Right wall
+    return walls
 
 def score(score):
     value = font_style.render("Snake Score: " + str(score), True, yellow)
@@ -74,6 +85,17 @@ def get_neighbors(position):
     neighbors = [(0, -block_size), (0, block_size), (-block_size, 0), (block_size, 0)]
     return [(position[0] + n[0], position[1] + n[1]) for n in neighbors]
 
+def plot_path_and_heuristic(paths, heuristics, start_time):
+    times = [h - start_time for h in heuristics]
+    heuristics_values = [len(path) for path in paths]
+    
+    plt.plot(heuristics_values, times, marker='o')
+    plt.xlabel('Heuristic Path Length')
+    plt.ylabel('Time (s)')
+    plt.title('Path Taken and Time Heuristic')
+    plt.grid(True)
+    plt.show()
+
 def gameLoop():
     game_over = False
     game_close = False
@@ -87,12 +109,25 @@ def gameLoop():
     foodx = round(random.randrange(0, dis_width - block_size) / 10.0) * 10.0
     foody = round(random.randrange(0, dis_height - block_size) / 10.0) * 10.0
 
-    obstacles = {(round(random.randrange(0, dis_width - block_size) / 10.0) * 10.0,
-                  round(random.randrange(0, dis_height - block_size) / 10.0) * 10.0) for _ in range(30)}
+    # Generate border walls
+    walls = generate_maze_walls()
+
+    # Generate 30 random obstacles inside the maze
+    random_obstacles = {(round(random.randrange(block_size, dis_width - block_size) / 10.0) * 10.0,
+                        round(random.randrange(block_size, dis_height - block_size) / 10.0) * 10.0)
+                        for _ in range(30)}
+
+    # Final obstacle set: maze walls + random blocks
+    obstacles = walls.union(random_obstacles)
+
     
     while (foodx, foody) in obstacles:
         foodx = round(random.randrange(0, dis_width - block_size) / 10.0) * 10.0
         foody = round(random.randrange(0, dis_height - block_size) / 10.0) * 10.0
+
+    paths = []
+    heuristics = []
+    start_time = time.time()
 
     while not game_over:
 
@@ -105,6 +140,7 @@ def gameLoop():
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_q:
+                        plot_path_and_heuristic(paths, heuristics, start_time)
                         game_over = True
                         game_close = False
                     if event.key == pygame.K_c:
@@ -119,11 +155,14 @@ def gameLoop():
         else:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    plot_path_and_heuristic(paths, heuristics, start_time)
                     game_over = True
 
             if path:
                 next_pos = path[0]
                 x1, y1 = next_pos
+                paths.append(path)
+                heuristics.append(time.time())
 
             if x1 >= dis_width or x1 < 0 or y1 >= dis_height or y1 < 0:
                 game_close = True

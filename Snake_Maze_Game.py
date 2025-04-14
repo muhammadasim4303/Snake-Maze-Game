@@ -146,6 +146,7 @@ def gameLoop():
 
         while game_close:
             dis.fill(blue)
+
             message("You Lost! Press C-Play Again or Q-Quit", red)
             score(length_of_snake - 1)
             pygame.display.update()
@@ -181,6 +182,8 @@ def gameLoop():
                 game_close = True
 
             dis.fill(blue)
+            for point in path:
+                pygame.draw.rect(dis, yellow, [point[0], point[1], block_size, block_size])
             for obstacle in obstacles:
                 pygame.draw.rect(dis, red, [obstacle[0], obstacle[1], block_size, block_size])
             pygame.draw.rect(dis, green, [foodx, foody, block_size, block_size])

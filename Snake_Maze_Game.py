@@ -209,7 +209,8 @@ def gameLoop():
                 length_of_snake += 1
 
             clock.tick(snake_speed)
-
+    high = save_high_score(length_of_snake - 1)
+    print("High Score:", high)
     pygame.quit()
     quit()
 
